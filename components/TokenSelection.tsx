@@ -9,7 +9,6 @@ import {
   useBalance,
   useChains
 } from "wagmi";
-import useFetchPopularTokens from '@/hooks/useFetchTokens';
 
 const TokenSelection = () => {
   const { tokens, setSwapTokens } = useSwapStore();
