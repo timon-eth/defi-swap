@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSwapStore } from '@/stores/useSwapStore';
-import { Token } from '@/types/index';
+import { Token } from '@/types';
 import { SwapRouter } from '@uniswap/v3-sdk';
 
 const PriceImpact = () => {

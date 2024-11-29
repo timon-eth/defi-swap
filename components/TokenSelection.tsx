@@ -1,14 +1,23 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import { useSwapStore } from '@/stores/useSwapStore';
-import { Token } from '@/types/index';
-import { Input } from "@/components/ui/input"
+import { Token } from '@/types';
+import { Input } from "@/components/ui/input";
+import {
+  useAccount,
+  useBalance,
+  useChains
+} from "wagmi";
+import useFetchPopularTokens from '@/hooks/useFetchTokens';
 
 const TokenSelection = () => {
-  const { tokens, setSwapTokenIn, setSwapTokenOut } = useSwapStore();
+  const { tokens, setSwapTokens } = useSwapStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [customTokenAddress, setCustomTokenAddress] = useState('');
+  const [tokenIn, setTokenIn] = useState('');
+  const [tokenOut, setTokenOut] = useState('');
+  const [amount, setAmount] = useState('');
 
   const filteredTokens = tokens.popularTokens.filter((token) =>
     token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
@@ -21,8 +30,7 @@ const TokenSelection = () => {
       name: 'Custom Token',
       decimals: 18,
     };
-    setSwapTokenIn(customToken);
-    setSwapTokenOut(customToken);
+    setSwapTokens(customToken, customToken, amount);
   };
 
   return (
@@ -35,7 +43,7 @@ const TokenSelection = () => {
       />
       <div>
         {filteredTokens.map((token) => (
-          <div key={token.address} onClick={() => setSwapTokenIn(token)}>
+          <div key={token.address}>
             {token.symbol}
           </div>
         ))}

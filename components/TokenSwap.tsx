@@ -2,19 +2,23 @@
 
 import React, { useEffect } from 'react';
 import { useSwapStore } from '@/stores/useSwapStore'; // Import the Zustand store
+import {
+  useAccount,
+  useBalance,
+  useChainId
+} from "wagmi";
 
 const TokenSwapComponent = () => {
   // Access state and setters from the store
-  const { wallet, swap, tokens, setWalletAddress, setWalletBalance, setSwapAmount } = useSwapStore();
-
-  useEffect(() => {
-    // Example of setting wallet information
-    setWalletAddress('0x1234...abcd'); // Set the wallet address (could come from a wallet provider)
-    setWalletBalance('100.5'); // Set wallet balance (could come from a blockchain API)
-  }, [setWalletAddress, setWalletBalance]);
+  const { wallet, swap, setWallet} = useSwapStore();
+  const { address, isConnected } = useAccount();
+  const fallbackChainId = useChainId();
+  const { data: balance } = useBalance({
+    address,
+  });
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSwapAmount(e.target.value); // Update the swap amount in the store
+    setWallet(`0x${address}`, `${balance?.value}`, e.target.value);
   };
 
   return (
