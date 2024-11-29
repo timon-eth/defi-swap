@@ -6,29 +6,26 @@ import { WagmiProvider } from 'wagmi';
 import { metaMaskWallet, trustWallet, injectedWallet, rainbowWallet, walletConnectWallet, coinbaseWallet } from '@rainbow-me/rainbowkit/wallets';
 import { mainnet, sepolia } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-
+import { CounterStoreProvider } from '@/components/providers/default';
 // Define project ID
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!;
-
-// Define the available chains
-const chains = [mainnet, sepolia];
 
 // Define wallet list
 const walletlist = [
   {
     groupName: 'Recommended',
     wallets: [
-      metaMaskWallet, 
+      metaMaskWallet,
       walletConnectWallet
     ]
   },
   {
     groupName: 'Popular',
     wallets: [
-      coinbaseWallet, 
-      injectedWallet, 
-      rainbowWallet, 
-      trustWallet, 
+      coinbaseWallet,
+      injectedWallet,
+      rainbowWallet,
+      trustWallet,
     ]
   }
 ];
@@ -53,7 +50,9 @@ export default function Providers({ children }: ProvidersProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          {children}
+          <CounterStoreProvider>
+            {children}
+          </CounterStoreProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
