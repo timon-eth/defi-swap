@@ -62,42 +62,38 @@ const TokenSearch = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]); 
 
-  // Trigger token fetch when input is focused
   useEffect(() => {
     if (isFocused) {
-      // useFetchTokens(); // Fetch tokens when focused
       fetchTokens();
     }
-  }, [isFocused]); // Run when isFocused state changes
+  }, [isFocused]);
 
-  // Handle input focus
   const handleFocus = () => {
-    setIsFocused(true); // Set focus state to true
+    setIsFocused(true);
   };
 
-  // Handle input blur (optional, reset focus state if needed)
   const handleBlur = () => {
-    setIsFocused(false); // Reset focus state when input loses focus
+    setIsFocused(false);
   };
 
   return (
-    <div>
+    <div className='sm:w-[400px]'>
       <Input
-        className='my-2'
+        className='my-2 w-full'
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={handleFocus} // Trigger fetching on focus
         onBlur={handleBlur} // Optional: reset focus on blur
         placeholder="Search for a token"
       />
-      <ScrollArea className='h-[400px] w-[350px] rounded-md border p-2'>
+      {isFocused && <ScrollArea className='h-[400px] w-full rounded-md border p-2'>
         {tokens.popularTokens.map((token) => (
           <div className='bg-stone-200 p-2 rounded-xl my-1' key={token.address}>
             <p className='text-xl'>{token.name}</p>
             <p className='text-sm'>{token.symbol}</p>
           </div>
         ))}
-      </ScrollArea>
+      </ScrollArea>}
     </div>
   );
 };
