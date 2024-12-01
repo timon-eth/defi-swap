@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const json = await req.json();
-  const { chain } = json;
+  const { operationName, chain } = json;
 
   try {
     const response = await fetch(
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           "operationName": "TrendingTokens",
           "variables": {
-              "chain": chain
+              "chain": "ETHEREUM"
           },
           "query": "query TrendingTokens($chain: Chain!) {\n  topTokens(pageSize: 4, page: 1, chain: $chain, orderBy: VOLUME) {\n    ...SimpleTokenDetails\n    id\n    decimals\n    name\n    chain\n    standard\n    address\n    symbol\n    market(currency: USD) {\n      id\n      price {\n        id\n        value\n        currency\n        __typename\n      }\n      pricePercentChange(duration: DAY) {\n        id\n        value\n        __typename\n      }\n      volume24H: volume(duration: DAY) {\n        id\n        value\n        currency\n        __typename\n      }\n      __typename\n    }\n    project {\n      id\n      logoUrl\n      safetyLevel\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SimpleTokenDetails on Token {\n  id\n  address\n  chain\n  decimals\n  name\n  standard\n  symbol\n  project {\n    id\n    isSpam\n    logoUrl\n    name\n    safetyLevel\n    __typename\n  }\n  feeData {\n    buyFeeBps\n    sellFeeBps\n    __typename\n  }\n  protectionInfo {\n    attackTypes\n    result\n    __typename\n  }\n  __typename\n}"
       }),

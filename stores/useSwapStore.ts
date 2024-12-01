@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { AppState, Token, Transaction, Route } from '@/types';
+import { AppState, Token, Transaction, Route, TokensState } from '@/types';
 
 // Define the store interface
 interface Store extends AppState {
   setWallet: (address: string, balance: string, network: string) => void;
   setTransactions: (transactions: Transaction[]) => void;
-  setTokens: (tokens: Token[]) => void;
+  setTokens: (tokens: TokensState) => void;
   setSwapTokens: (tokenIn: Token, tokenOut: Token, amount: string) => void;
   setRoute: (route: Route) => void;
   setPrice: (price: string) => void;
@@ -20,14 +20,15 @@ export const useSwapStore = create<Store>((set) => ({
     transactions: [],
   },
   swap: {
-    tokenIn: { address: '', symbol: '', name: '', decimals: 18 },
-    tokenOut: { address: '', symbol: '', name: '', decimals: 18 },
+    tokenIn: { address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
+    tokenOut: { address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
     amount: '0',
     route: { path: [], priceImpact: '', estimatedGas: '' },
     price: '0',
   },
   tokens: {
     popularTokens: [], // Can be populated from an API or static data
+    searchTokens: [],
     userTokens: [],
   },
 
@@ -42,14 +43,14 @@ export const useSwapStore = create<Store>((set) => ({
       wallet: { ...state.wallet, transactions },
     })),
 
-  setTokens: (tokens: Token[]) =>
+  setTokens: (tokens: TokensState) =>
     set((state) => ({
-      tokens: { ...state.tokens, popularTokens: tokens }, // Directly update the tokens state
+      tokens: { ...state.tokens, ...tokens }, // Spread the new tokens object to merge with current state
     })),
 
   setSwapTokens: (tokenIn: Token, tokenOut: Token, amount: string) =>
     set((state) => ({
-      swap: { ...state.swap, tokenIn, tokenOut, amount },
+      swap: { ...state.swap, tokenIn, tokenOut, amount: parseFloat(amount).toString() }, // Convert amount to a number, if needed
     })),
 
   setRoute: (route: Route) =>

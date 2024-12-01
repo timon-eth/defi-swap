@@ -3,6 +3,22 @@ export interface Token {
   symbol: string;   // Token symbol (e.g., ETH, USDT)
   name: string;     // Full name of the token
   decimals: number; // Number of decimals (for token math)
+  project: {
+    id: string,
+    isSpam: boolean,
+    logoUrl: string
+  },
+  market: {
+    price: {
+      value: number,
+    }
+    pricePercentChange: {
+      value: number,
+    }
+    volume24H: {
+      value: number
+    }
+  }
 }
 
 export interface Transaction {
@@ -34,5 +50,12 @@ export interface AppState {
   tokens: {
     popularTokens: Token[];
     userTokens: Token[];
+    searchTokens: Token[],
   };
+}
+
+export interface TokensState {
+  popularTokens: Token[];
+  userTokens: Token[];
+  searchTokens: Token[];
 }

@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${Syne.className} overflow-hidden`}>
+      <body className={`${Syne.className} overflow-hidden dark`}>
         <Providers>
           <Toaster />
           {children}
