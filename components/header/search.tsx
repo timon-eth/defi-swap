@@ -86,7 +86,7 @@ const TokenSearch = () => {
   };
 
   return (
-    <div className='fixed z-50 top-0 sm:w-[400px]'>
+    <div className='fixed z-50 sm:w-[400px] top-20'>
       <Input
         className='my-2 w-full'
         value={searchQuery}

@@ -340,12 +340,9 @@ export default function Swap() {
         {address ? <Button className='w-full bg-neutral-500 rounded-xl' onClick={() => { swap() }}>Swap</Button> : <Connect></Connect>}
       </CardFooter>
       <AlertDialog open={isSuccess}>
-        <AlertDialogTrigger asChild>
-          <Button variant="outline">Show Dialog</Button>
-        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Transaction Confirmed</AlertDialogTitle>
             <AlertDialogDescription>
               The swap was completed successfully.
             </AlertDialogDescription>
