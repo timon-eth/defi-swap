@@ -20,8 +20,8 @@ export const useSwapStore = create<Store>((set) => ({
     transactions: [],
   },
   swap: {
-    tokenIn: { address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
-    tokenOut: { address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
+    tokenIn: { chain: '', address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
+    tokenOut: { chain: '', address: '', symbol: '', name: '', decimals: 18, project: { id: '', isSpam: false, logoUrl: '' }, market: { price: { value: 0 }, pricePercentChange: { value: 0 }, volume24H: { value: 0 } } },
     amount: '0',
     route: { path: [], priceImpact: '', estimatedGas: '' },
     price: '0',

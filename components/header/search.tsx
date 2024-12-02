@@ -116,22 +116,24 @@ const TokenSearch = () => {
                   <p className='text-md'>{token.name}</p>
                   <p className='text-sm'>{token.symbol}</p>
                 </div>
-                <p className='ml-auto'>
-                  <span className='mx-1'>$</span>
-                  {token.market.price?.value ? token.market.price.value.toFixed(2) : 'N/A'}
-                </p>
-                <p className='flex flex-row'>
-                  {token.market.pricePercentChange?.value
-                    ? token.market.pricePercentChange.value.toFixed(2)
-                    : 'N/A'}%
-                  <span>
-                    {token.market.pricePercentChange?.value > 0 ? (
-                      <ArrowUp className='text-sm w-4 text-[#00f0ff]' />
-                    ) : (
-                      <ArrowDown className='text-sm w-4 text-[#00f0ff]' />
-                    )}
-                  </span>
-                </p>
+                <div className='flex flex-col ml-auto'>
+                  <p className='ml-auto'>
+                    <span className='mx-1'>$</span>
+                    {token.market.price?.value ? token.market.price.value.toFixed(2) : '0'}
+                  </p>
+                  <p className='flex flex-row'>
+                    {token.market.pricePercentChange?.value
+                      ? token.market.pricePercentChange.value.toFixed(2)
+                      : '0.00'}%
+                    <span>
+                      {token.market.pricePercentChange?.value > 0 ? (
+                        <ArrowUp className='text-sm w-4 text-[#00f0ff]' />
+                      ) : (
+                        <ArrowDown className='text-sm w-4 text-[#00f0ff]' />
+                      )}
+                    </span>
+                  </p>
+                </div>
               </div>
             ))}
           </ScrollArea>}
@@ -154,28 +156,29 @@ const TokenSearch = () => {
                   <p className='text-md'>{token.name}</p>
                   <p className='text-sm'>{token.symbol}</p>
                 </div>
-                <p className='ml-auto'>
-                  <span className='mx-1'>$</span>
-                  {token.market.price?.value ? token.market.price.value.toFixed(2) : 'N/A'}
-                </p>
-                <p className='flex flex-row'>
-                  {token.market.pricePercentChange?.value
-                    ? token.market.pricePercentChange.value.toFixed(2)
-                    : 'N/A'}%
-                  <span>
-                    {token.market.pricePercentChange?.value > 0 ? (
-                      <ArrowUp className='text-sm w-4 text-[#00f0ff]' />
-                    ) : (
-                      <ArrowDown className='text-sm w-4 text-[#00f0ff]' />
-                    )}
-                  </span>
-                </p>
+                <div className='flex flex-col ml-auto'>
+                  <p className='ml-auto'>
+                    <span className='mx-1'>$</span>
+                    {token.market.price?.value ? token.market.price.value.toFixed(2) : '0'}
+                  </p>
+                  <p className='flex flex-row'>
+                    {token.market.pricePercentChange?.value
+                      ? token.market.pricePercentChange.value.toFixed(2)
+                      : '0.00'}%
+                    <span>
+                      {token.market.pricePercentChange?.value > 0 ? (
+                        <ArrowUp className='text-sm w-4 text-[#00f0ff]' />
+                      ) : (
+                        <ArrowDown className='text-sm w-4 text-[#00f0ff]' />
+                      )}
+                    </span>
+                  </p>
+                </div>
               </div>
             ))}
           </ScrollArea>}
         </>
       }
-
     </div>
   );
 };

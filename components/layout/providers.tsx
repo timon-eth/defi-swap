@@ -4,9 +4,9 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { metaMaskWallet, trustWallet, injectedWallet, rainbowWallet, walletConnectWallet, coinbaseWallet } from '@rainbow-me/rainbowkit/wallets';
-import { mainnet, sepolia, bsc, polygon, avalanche, arbitrum, optimism, base, blast } from 'wagmi/chains';
+import { mainnet, bsc, avalanche, polygon, optimism, arbitrum, sepolia, blast, zora, celo } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { CounterStoreProvider } from '@/components/providers/default';
+
 // Define project ID
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!;
 
@@ -15,17 +15,17 @@ const walletlist = [
   {
     groupName: 'Recommended',
     wallets: [
-      metaMaskWallet,
+      metaMaskWallet, // Reference the function (not the result)
+      trustWallet, // Reference the function (not the result)
       walletConnectWallet
     ]
   },
   {
     groupName: 'Popular',
     wallets: [
-      coinbaseWallet,
-      injectedWallet,
-      rainbowWallet,
-      trustWallet,
+      coinbaseWallet, // Reference the function (not the result)
+      injectedWallet, // Reference the function (not the result)
+      rainbowWallet, // Reference the function (not the result)
     ]
   }
 ];
@@ -34,7 +34,7 @@ const walletlist = [
 const config = getDefaultConfig({
   appName: "Trial",
   projectId,
-  chains: [mainnet, sepolia, bsc, polygon, avalanche, arbitrum, optimism, base, blast],
+  chains: [mainnet, sepolia, bsc, avalanche, polygon, optimism, arbitrum, blast, zora, celo],
   ssr: true,
   wallets: walletlist,
 });
@@ -50,9 +50,7 @@ export default function Providers({ children }: ProvidersProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <CounterStoreProvider>
-            {children}
-          </CounterStoreProvider>
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

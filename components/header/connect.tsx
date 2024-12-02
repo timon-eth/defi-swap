@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet"
 import { useState, useEffect, useRef } from 'react';
 import { Label } from '../ui/label';
-import { ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 
 export const Connect = () => {
   const [opensheet, setOpensheet] = useState(false);
@@ -86,34 +86,6 @@ export const Connect = () => {
                     />
                       {account.displayName}</span>
                   </button>
-                  // <div className='connect-button-group'>
-                  //   <button
-                  //     onClick={openChainModal}
-                  //     style={{ display: 'flex', alignItems: 'center' }}
-                  //     type="button"
-                  //     className="wallet_button hbutton-lnk"
-                  //   >
-                  //     {chain.hasIcon && (
-                  //       <div>
-                  //         {chain.iconUrl && (
-                  //           <img
-                  //             alt={chain.name ?? 'Chain icon'}
-                  //             src={chain.iconUrl}
-                  //             style={{ width: 24, height: 24 }}
-                  //             className='chain-icon'
-                  //           />
-                  //         )}
-                  //       </div>
-                  //     )}
-                  //     {chain.name}
-                  //   </button>
-                  //   <button onClick={openAccountModal} type="button" className="wallet_button hbutton-lnk">
-                  //     {account.displayName}
-                  //     {account.displayBalance
-                  //       ? ` (${account.displayBalance})`
-                  //       : ''}
-                  //   </button>
-                  // </div>
                 );
               })()}
             </div>
@@ -121,9 +93,9 @@ export const Connect = () => {
         }}
       </ConnectButton.Custom>
       <Sheet open={opensheet}>
-        <SheetContent ref={sheetRef}>
+        <SheetContent onCloseAutoFocus={ () => { setOpensheet(false) }} ref={sheetRef}>
           <SheetHeader>
-            <h1 className='text-[#00f0ff]'>Setting Wallet</h1>
+            <SheetTitle><h1 className='text-[#00f0ff]'>Setting Wallet</h1></SheetTitle>
             <ConnectButton.Custom>
               {({
                 account,
