@@ -10,10 +10,10 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import { Label } from '../ui/label';
 import { ChevronsUpDown } from 'lucide-react';
-
 export const Connect = () => {
   const [opensheet, setOpensheet] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
+  
 
   // Close sheet when clicking outside of it
   useEffect(() => {

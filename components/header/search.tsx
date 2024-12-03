@@ -8,6 +8,7 @@ import { Token } from '@/types';
 import { ArrowDown, ArrowUp, Star } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import Image from 'next/image';
+import { Skeleton } from '../ui/skeleton';
 
 const TokenSearch = () => {
   const { tokens, setTokens } = useSwapStore();
@@ -15,34 +16,60 @@ const TokenSearch = () => {
   const [filteredTokens, setFilteredTokens] = useState<Token[]>([]);
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function fetchPopularTokens() {
-    const res = await fetch("/api/tokens/fetchPopularTokens", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        operationName: "TrendingTokens",
-        chain: "ETHEREUM",
-      }),
-    })
-    const { data } = await res.json();
-    setTokens({ popularTokens: data, searchTokens: [], userTokens: [] });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tokens/fetchPopularTokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          operationName: "TrendingTokens",
+          chain: "ETHEREUM",
+        }),
+      })
+
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText}`);
+      }
+
+      const { data } = await res.json();
+      setTokens({ popularTokens: data, searchTokens: [], userTokens: [] });
+    } catch (error) {
+      console.error('Error fetching Popular tokens:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchSearchTokens() {
-    const res = await fetch("/api/tokens/fetchSearchTokens", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: searchQuery
-      }),
-    })
-    const { data } = await res.json();
-    setTokens({ popularTokens: [], searchTokens: data, userTokens: [] });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tokens/fetchSearchTokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: searchQuery
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText}`);
+      }
+
+      const { data } = await res.json();
+      setTokens({ popularTokens: [], searchTokens: data, userTokens: [] });
+    } catch (error) {
+      console.error('Error fetching Popular tokens:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -86,7 +113,7 @@ const TokenSearch = () => {
   };
 
   return (
-    <div className='fixed z-50 sm:w-[400px] top-20'>
+    <div className='fixed z-10 top-12 w-[350px] sm:w-[400px]'>
       <Input
         className='my-2 w-full'
         value={searchQuery}
@@ -103,6 +130,14 @@ const TokenSearch = () => {
               Search Tokens
             </p>
             <Separator className='bg-white'></Separator>
+            {loading &&
+              <div className="flex items-center space-x-4 pt-4 px-2">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[270px]" />
+                  <Skeleton className="h-4 w-[220px]" />
+                </div>
+              </div>}
             {tokens.searchTokens.map((token) => (
               <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address}>
                 {token.project.logoUrl ? (
@@ -143,6 +178,14 @@ const TokenSearch = () => {
               Popular Tokens
             </p>
             <Separator className='bg-white'></Separator>
+            {loading &&
+              <div className="flex items-center space-x-4 px-2 pt-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[270px]" />
+                  <Skeleton className="h-4 w-[220px]" />
+                </div>
+              </div>}
             {tokens.popularTokens.map((token) => (
               <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address}>
                 {token.project.logoUrl ? (
@@ -179,6 +222,7 @@ const TokenSearch = () => {
           </ScrollArea>}
         </>
       }
+
     </div>
   );
 };

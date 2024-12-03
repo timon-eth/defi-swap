@@ -57,6 +57,10 @@ export default function Swap() {
   const [tokenOut, setTokenOut] = useState<Token | null>(null);
   const [amount, setAmount] = useState('');
   const [outAmount, setOutAmount] = useState('');
+  const [slippage, setSlippage] = useState('');
+  const [slipvalue, setSlipvalue] = useState<number>(0.3);
+  const [sliperror, setSliperror] = useState('');
+  const [txn, setTxn] = useState<`0x${string}`>();
   const [loading, setLoading] = useState(false);
   const { data: hash, writeContractAsync, isError, isPending, isPaused, isSuccess } = useContractWrite()
 
@@ -65,7 +69,7 @@ export default function Swap() {
     address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY_ADDRESS as `0x${string}`,
     abi: IUniswapV3FactoryArtifact.abi,
     functionName: 'getPool',
-    args: [tokenIn?.address, tokenOut?.address, 3000],
+    args: [tokenIn?.address, tokenOut?.address, slipvalue * Number(process.env.NEXT_PUBLIC_SLIPPAGE_CONSTANT)],
   });
 
   const { data: slot0Data } = useContractRead({
@@ -173,18 +177,29 @@ export default function Swap() {
         sqrtPriceLimitX96: 0
       };
 
-      writeContractAsync({
+      let txn = await writeContractAsync({
         address: address as `0x${string}`,
         abi: ISwapRouterArtifact.abi,
         functionName: 'exactInputSingle',
         args: [params],
         gas: BigInt(ethers.utils.hexlify(700000))
-      })
+      });
+      setTxn(txn);
 
     } catch (e) {
       console.log(e);
     }
   }
+
+  const slipChange = (value: string) => {
+    if (Number(value) < 0.1 || Number(value) > 1) {
+      setSliperror("0.1 from 1");
+    } else {
+      setSliperror(""); // Clear the error if the value is within range
+      setSlipvalue(Number(value));
+    }
+    setSlippage(value);
+  };
 
   useEffect(() => {
     setSwapTokens(tokenIn!, tokenOut!, amount);
@@ -193,8 +208,9 @@ export default function Swap() {
   useEffect(() => {
     if (tokenIn?.address == '' || !tokenIn?.address || tokenOut?.address == '' || !tokenOut?.address)
       return;
+    console.log(poolAddress)
     if (poolAddress) {
-      if (poolAddress == process.env.NEXT_PUBLIC_POOL_NULL && slot0AtoETH && slot0ETHtoB && feeAmountAtoETH && liquidityAmountAtoETH && feeAmountETHtoB && liquidityAmountETHtoB && address) {
+      if (poolAddress == process.env.NEXT_PUBLIC_POOL_NULL && slot0AtoETH && slot0ETHtoB && feeAmountAtoETH && liquidityAmountAtoETH && feeAmountETHtoB && liquidityAmountETHtoB) {
         const tokenS = new UniswapToken(Number(process.env.NEXT_PUBLIC_STABLE_TOKEN_CHAIN), `${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, Number(process.env.NEXT_PUBLIC_STABLE_TOKEN_DECIMALS));
         const tokenA = new UniswapToken(chainId!, tokenIn?.address!, tokenIn?.decimals!);
         const tokenB = new UniswapToken(chainId!, tokenOut?.address!, tokenOut?.decimals!);
@@ -249,7 +265,7 @@ export default function Swap() {
         }
 
       } else {
-        if (slot0Data && feeAmount && liquidityAmount && address) {
+        if (slot0Data && feeAmount && liquidityAmount) {
           const tokenA = new UniswapToken(chainId!, tokenOut?.address!, tokenOut?.decimals!);
           const tokenB = new UniswapToken(chainId!, tokenIn?.address!, tokenIn?.decimals!);
           const [sqrtRatioX96Amount, tickAmount] = slot0Data as Slot0Data;
@@ -310,9 +326,8 @@ export default function Swap() {
   }, [poolAddress, slot0Data, slot0AtoETH, slot0ETHtoB, feeAmount, liquidityAmount, tokenIn, tokenOut, amount, setSwapTokens]);
 
 
-
   return (
-    <Card>
+    <Card className='items-center flex flex-col'>
       <CardHeader>
         <h1 className='text-[#00f0ff]'>Swap</h1>
       </CardHeader>
@@ -327,24 +342,41 @@ export default function Swap() {
             <AccordionTrigger>Setting</AccordionTrigger>
             <AccordionContent>
               <div className='flex flex-row py-2 px-1'>
-                <Label className='w-1/2 my-auto text-[#00f0ff]'>Max slippage</Label>
-                <Input className='w-1/2'></Input>
-              </div>
-              <div className='flex flex-row py-2 px-1'>
-                <Label className='w-1/2 my-auto text-[#00f0ff]'>Transaction deadline</Label>
-                <Input className='w-1/2'></Input>
+                <Label className='w-1/2 my-auto text-[#00f0ff]'>
+                  Max slippage
+                  <span className='text-red-700 font-[12px]'>
+                    {sliperror != "" && <p>{sliperror}</p>}
+                  </span>
+                </Label>
+                <Input
+                  className='w-1/2'
+                  defaultValue={0.3}
+                  value={slippage}
+                  type="number"
+                  step={0.1}
+                  onChange={(e) => { slipChange(e.target.value) }}
+                >
+                </Input>
+
               </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
         {address ? <Button className='w-full bg-neutral-500 rounded-xl' onClick={() => { swap() }}>Swap</Button> : <Connect></Connect>}
       </CardFooter>
-      <AlertDialog open={isSuccess}>
+      {isPending && <AlertDialog open={isSuccess || isError || isPaused}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Transaction Confirmed</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isSuccess && "Transaction Confirmed"}
+              {isError && "Transaction Failed"}
+              {isPaused && "Transaction Paused"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              The swap was completed successfully.
+              {isSuccess && "The swap was completed successfully."}
+              {isError && "An error occurred while executing the transaction."}
+              {isPaused && "The transaction was paused for a while."}
+              <a className='p-2' href='#'>{txn?.slice(0, 8)}...</a>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -352,7 +384,7 @@ export default function Swap() {
             <AlertDialogAction>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog>}
     </Card>
   );
 }

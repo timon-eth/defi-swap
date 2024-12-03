@@ -1,6 +1,7 @@
 'use client'
 
 import React, { use, useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useAccount } from 'wagmi';
 import { useSwapStore } from '@/stores/useSwapStore';
 import { useTokenData } from '@/hooks/useTokenData';
@@ -26,7 +27,8 @@ import {
 import { ChevronsUpDown } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRight } from 'lucide-react';
-import Image from 'next/image';
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 type props = {
   outAmount: string,
@@ -47,36 +49,61 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   const [checkedValue, setCheckedValue] = useState<NetworkKey>('ethereum');
+  const [loading, setLoading] = useState(false);
 
   async function fetchUserTokens() {
-    const res = await fetch("/api/tokens/fetchUserTokens", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        operationName: "TopTokens",
-        chain: `${checkedValue.toUpperCase()}`,
-        orderBy: "POPULARITY"
-      }),
-    })
-    const { data } = await res.json();
-    setTokens({ popularTokens: [], searchTokens: [], userTokens: data });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tokens/fetchUserTokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          operationName: "TopTokens",
+          chain: `${checkedValue.toUpperCase()}`,
+          orderBy: "POPULARITY"
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText}`);
+      }
+
+      const { data } = await res.json();
+      setTokens({ popularTokens: [], searchTokens: [], userTokens: data });
+    } catch (error) {
+      console.error('Error fetching user tokens:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchSearchChainsTokens() {
-    const res = await fetch("/api/tokens/fetchSearchChainsTokens", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chains: [`${checkedValue.toUpperCase()}`],
-        query: searchQuery
-      }),
-    })
-    const { data } = await res.json();
-    setTokens({ popularTokens: [], searchTokens: data, userTokens: [] });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tokens/fetchSearchChainsTokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chains: [`${checkedValue.toUpperCase()}`],
+          query: searchQuery
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText}`);
+      }
+
+      const { data } = await res.json();
+      setTokens({ popularTokens: [], searchTokens: data, userTokens: [] });
+    } catch (error) {
+      console.error('Error fetching search chains tokens:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -93,6 +120,9 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
     const timer = setTimeout(() => {
       if (searchQuery !== "") {
         fetchSearchChainsTokens();
+      }
+      else {
+        fetchUserTokens();
       }
     }, 500);
 
@@ -159,7 +189,7 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
       </div>
 
       <Dialog open={modal}>
-        <DialogContent onCloseAutoFocus={() => { setModal(false) }} className='bg-neutral-700 bg-opacity-90' ref={modalRef}>
+        <DialogContent className='bg-neutral-700 bg-opacity-90 w-[400px]' ref={modalRef}>
           <DialogHeader>
             <DialogTitle><p className="text-[#00f0ff] text-xl">Select a token</p></DialogTitle>
             <div className='flex flex-row p-1 rounded-xl bg-neutral-700'>
@@ -202,6 +232,14 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
             <p className='text-stone-100 flex flex-row py-2'>
               Search Tokens
             </p>
+            {loading &&
+              <div className="flex items-center space-x-4 px-2">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[220px]" />
+                  <Skeleton className="h-4 w-[180px]" />
+                </div>
+              </div>}
             {tokens.searchTokens.map((token) => (
               <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { setTokenOut(token); setModal(false) }} key={token.address}>
                 {token.project.logoUrl ? (
@@ -222,6 +260,14 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
               <p className='text-stone-100 flex flex-row py-2'>
                 Tokens
               </p>
+              {loading &&
+                <div className="flex items-center space-x-4 px-2">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[220px]" />
+                    <Skeleton className="h-4 w-[180px]" />
+                  </div>
+                </div>}
               {tokens.userTokens.map((token: Token) => (
                 <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { setTokenOut(token); setModal(false) }} key={token.address}>
                   {token.project.logoUrl ? (
