@@ -1,6 +1,5 @@
 'use client'
-import { columns } from "@/components/tables/pool-table/columns";
-import { PoolTable } from "@/components/tables/pool-table/pool-table";
+
 import {
   AlertDialog,
   AlertDialogAction,

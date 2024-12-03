@@ -7,7 +7,7 @@ export const useTokenData = (tokenAddress: string, userAddress: string) => {
     address: tokenAddress as `0x${string}`,
     abi: GeneralArtifact.abi,
     functionName: "balanceOf",
-    args: [userAddress], // Pass the wallet address as an argument to balanceOf
+    args: ['0x1f3d42d995036a56aa4da0dcb6add4fc1a41d058'], // Pass the wallet address as an argument to balanceOf
   });
 
   const { data: tokenDecimals } = useContractRead({
