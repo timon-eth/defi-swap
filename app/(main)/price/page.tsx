@@ -103,7 +103,7 @@ export default function Page() {
       )}
 
       <div className="space-y-4 w-full mt-12 md:p-8 pt-6 flex flex-col items-center">
-        <p className="text-[#00f0ff] text-xl mb-2">$ {price}</p>
+        <p className="text-[#00f0ff] text-xl mb-2">Price Impact <span className="mx-8 text-white">${price}</span></p>
         <PriceChart data={data}></PriceChart>
       </div>
     </>
