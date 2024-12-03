@@ -199,7 +199,7 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
           </span>
         </button>
         <div className='flex flex-row mt-2'>
-          {tokenIn?.symbol && <p className='text-[#00f0ff]'>Value: {formattedBalance}</p>}
+          {tokenIn?.symbol && <p className='text-[#00f0ff]'>Balance: {formattedBalance}</p>}
           <p className='ml-auto text-[#00f0ff]'>{tokenIn?.symbol}</p>
         </div>
       </div>

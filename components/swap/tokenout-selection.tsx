@@ -198,7 +198,7 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
           </span>
         </button>
         <div className='flex flex-row mt-2'>
-          {tokenOut?.symbol && <p className='text-[#00f0ff]'>Value: {formattedBalance}</p>}
+          {tokenOut?.symbol && <p className='text-[#00f0ff]'>Balance: {formattedBalance}</p>}
           <p className='ml-auto text-[#00f0ff]'>{tokenOut?.symbol}</p>
         </div>
       </div>

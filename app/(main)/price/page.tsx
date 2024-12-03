@@ -13,36 +13,49 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { PriceChart } from "@/components/chart/price";
 
 export default function Page() {
-  const [tabledata, setTableData] = useState<any>([]);
-  const [pageNo, setPageNo] = useState(1);
-  const [count, setCount] = useState<any>();
+  const params = useSearchParams();
+  const [data, setData] = useState<any>([]);
+  const [price, setPrice] = useState('');
   const [loading, setLoading] = useState<boolean>(false);
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false); // State to track screen width
   const [maximized, setMaximized] = useState<boolean>(false); // State to track if the screen was maximized
 
-  async function onPage() {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/analytics/pool", {
-        method: "POST",
-        body: JSON.stringify({ pageNo: pageNo }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        return 0;
+  async function fetchToken() {
+    if (params.get('chain') && params.get('address')) {
+      let chain = params.get('chain');
+      let address = params.get('address');
+      setLoading(true);
+      try {
+        const res = await fetch("/api/price", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            operationName: 'TokenPrice',
+            chain: chain,
+            address: address,
+            duration: "DAY"
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${res.statusText}`);
+        }
+
+        const { data, tprice } = await res.json();
+        setData(data);
+        setPrice(tprice);
+
+      } catch (error) {
+        console.error('Error fetching search chains tokens:', error);
+      } finally {
+        setLoading(false);
       }
-      const { data, count } = await response.json();
-      let num = Math.ceil(count / 50);
-      setCount(num);
-      setTableData(data);
-    } catch (e) {
-      throw e;
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -60,8 +73,8 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    onPage();
-  }, [pageNo]);
+    fetchToken();
+  }, [params]);
 
   const handleMaximize = () => {
     setMaximized(true);
@@ -89,14 +102,9 @@ export default function Page() {
         </AlertDialog>
       )}
 
-      <div className="space-y-4 w-full xl:w-2/3 mt-12 md:p-8 pt-6 flex flex-col items-center">
-        <p className="text-[#00f0ff] text-xl mb-2">Swap Pool</p>
-        <PoolTable
-          columns={columns}
-          data={tabledata}
-          pageNo={setPageNo} // Pass pageNo directly
-          totalUsers={0}
-          pageCount={count} />
+      <div className="space-y-4 w-full mt-12 md:p-8 pt-6 flex flex-col items-center">
+        <p className="text-[#00f0ff] text-xl mb-2">$ {price}</p>
+        <PriceChart data={data}></PriceChart>
       </div>
     </>
   );

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const json = await req.json();
-  const { operationName, chain } = json;
-
   try {
     const response = await fetch(
       `https://interface.gateway.uniswap.org/v1/graphql`,

@@ -1,22 +1,25 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSwapStore } from '@/stores/useSwapStore';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Token } from '@/types';
 import { ArrowDown, ArrowUp, Star } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import Image from 'next/image';
 import { Skeleton } from '../ui/skeleton';
-
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 const TokenSearch = () => {
   const { tokens, setTokens } = useSwapStore();
+  const pathname = usePathname();
+  const params = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredTokens, setFilteredTokens] = useState<Token[]>([]);
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const searchcontent = useRef<HTMLDivElement | null>(null);
 
   async function fetchPopularTokens() {
     setLoading(true);
@@ -31,7 +34,6 @@ const TokenSearch = () => {
           chain: "ETHEREUM",
         }),
       })
-
 
       if (!res.ok) {
         throw new Error(`Failed to fetch: ${res.statusText}`);
@@ -108,10 +110,16 @@ const TokenSearch = () => {
     setIsFocused(true);
   };
 
-  const handleBlur = () => {
-    setIsFocused(false);
+  const handleBlur = (e: React.FocusEvent) => {
+    if (searchcontent.current && !searchcontent.current.contains(e.relatedTarget as Node)) {
+      setIsFocused(false);
+    }
   };
 
+  useEffect(() => {
+    setIsFocused(false);
+    console.log(pathname);
+  }, [pathname, params])
   return (
     <div className='fixed z-10 top-12 w-[350px] sm:w-[400px]'>
       <Input
@@ -123,8 +131,8 @@ const TokenSearch = () => {
         placeholder="Search for a token"
       />
       {isFocused &&
-        <>
-          {tokens.searchTokens.length > 0 && <ScrollArea className='h-[400px] bg-neutral-700 bg-opacity-90 w-full px-4 py-2 rounded-md border'>
+        <div className='w-full'ref={searchcontent}>
+          {tokens?.searchTokens.length > 0 && <ScrollArea className='h-[400px] bg-neutral-700 bg-opacity-90 w-full px-4 py-2 rounded-md border'>
             <p className='text-stone-100 flex flex-row py-2'>
               <Star className='text-sm mr-1' />
               Search Tokens
@@ -138,8 +146,8 @@ const TokenSearch = () => {
                   <Skeleton className="h-4 w-[220px]" />
                 </div>
               </div>}
-            {tokens.searchTokens.map((token) => (
-              <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address}>
+            {tokens?.searchTokens?.map((token) => (
+              <Link className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address} href={`/price?chain=${token.chain}&address=${token.address}`}>
                 {token.project.logoUrl ? (
                   <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
                 ) : (
@@ -169,10 +177,10 @@ const TokenSearch = () => {
                     </span>
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </ScrollArea>}
-          {tokens.popularTokens.length > 0 && <ScrollArea className='h-[400px] bg-neutral-700 bg-opacity-90 w-full px-4 py-2 rounded-md border'>
+          {tokens?.popularTokens?.length > 0 && <ScrollArea className='h-[400px] bg-neutral-700 bg-opacity-90 w-full px-4 py-2 rounded-md border'>
             <p className='text-stone-100 flex flex-row py-2'>
               <Star className='text-sm mr-1' />
               Popular Tokens
@@ -186,8 +194,8 @@ const TokenSearch = () => {
                   <Skeleton className="h-4 w-[220px]" />
                 </div>
               </div>}
-            {tokens.popularTokens.map((token) => (
-              <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address}>
+            {tokens?.popularTokens?.map((token) => (
+              <Link className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' key={token.address} href={`/price?chain=${token.chain}&address=${token.address}`}>
                 {token.project.logoUrl ? (
                   <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
                 ) : (
@@ -217,12 +225,11 @@ const TokenSearch = () => {
                     </span>
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </ScrollArea>}
-        </>
+        </div>
       }
-
     </div>
   );
 };
