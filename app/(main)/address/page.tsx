@@ -41,7 +41,8 @@ export default function Page() {
 
   return (
     <>
-      {!loading && data.length >0 ? <div className="p-7">
+      {!loading && data.length > 0 ? <div className="p-7">
+        <p className="text-[#00f0ff] text-xl mb-2">User History</p>
         <Table className="!shadow-xl p-7">
           <TableCaption>Transaction History</TableCaption>
           <TableHeader>
@@ -67,7 +68,7 @@ export default function Page() {
             ))}
           </TableBody>
         </Table>
-      </div> : <Skeleton className='w-[450px] h-[30vh] text-[#00f0ff] justify-center text-center pt-32 px-12' >There are currently no Swap transactions that you have performed in Uniswap.</Skeleton>}
+      </div> : <Skeleton className='w-[650px] h-[30vh] text-[#00f0ff] justify-center text-center pt-32 px-12' >There are currently no Swap transactions that you have performed in Uniswap.</Skeleton>}
     </>
   );
 };

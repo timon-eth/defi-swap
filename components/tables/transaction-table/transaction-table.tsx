@@ -134,7 +134,7 @@ export function TransactionTable<TData, TValue>({
 
   return (
     <>
-      <ScrollArea className="rounded-md border h-[calc(100vh-220px)] w-full">
+      <ScrollArea className="rounded-md border h-[calc(100vh-220px)] w-full bg-neutral-700 bg-opacity-90">
         {data.length > 0 ? <Table className="relative">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

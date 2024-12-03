@@ -266,8 +266,8 @@ export default function Swap() {
 
       } else {
         if (slot0Data && feeAmount && liquidityAmount) {
-          const tokenA = new UniswapToken(chainId!, tokenOut?.address!, tokenOut?.decimals!);
-          const tokenB = new UniswapToken(chainId!, tokenIn?.address!, tokenIn?.decimals!);
+          const tokenA = new UniswapToken(tokenOut?.chain!, tokenOut?.address!, tokenOut?.decimals!);
+          const tokenB = new UniswapToken(tokenIn.chain!, tokenIn?.address!, tokenIn?.decimals!);
           const [sqrtRatioX96Amount, tickAmount] = slot0Data as Slot0Data;
 
           const fee = Number(feeAmount);
@@ -310,10 +310,7 @@ export default function Swap() {
       }
     }
     else {
-      if (poolloading) {
-
-      }
-      else {
+      if (!poolloading) {
         toast("Pool Loading Failed", {
           description: `Pool Loading Failed`,
           action: {
@@ -332,7 +329,7 @@ export default function Swap() {
         <h1 className='text-[#00f0ff]'>Swap</h1>
       </CardHeader>
       <CardContent className="space-y-2">
-        <TokenInSelection amount={amount} tokenIn={tokenIn} setAmount={setAmount} setTokenIn={setTokenIn} />
+        <TokenInSelection amount={amount} tokenIn={tokenIn} setAmount={setAmount} setTokenIn={setTokenIn}/>
         <Separator className="w-4/5 mx-auto" />
         <TokenOutSelection outAmount={outAmount} tokenOut={tokenOut} setOutAmount={setOutAmount} setTokenOut={setTokenOut} />
       </CardContent>
@@ -357,7 +354,6 @@ export default function Swap() {
                   onChange={(e) => { slipChange(e.target.value) }}
                 >
                 </Input>
-
               </div>
             </AccordionContent>
           </AccordionItem>

@@ -135,7 +135,7 @@ export function TokenTable<TData, TValue>({
   return (
     <>
       <div>
-        <ScrollArea className="rounded-md mx-auto items-center border h-[calc(100vh-220px)] w-[1020px]">
+        <ScrollArea className="rounded-md mx-auto items-center border h-[calc(100vh-220px)] w-[1020px] bg-neutral-700 bg-opacity-90">
           {data.length > 0 ? <Table className="relative">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

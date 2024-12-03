@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { useAccount } from 'wagmi';
 import { useSwapStore } from '@/stores/useSwapStore';
 import { useTokenData } from '@/hooks/useTokenData';
-import { NetworkKey, Token, networkImages, networks } from '@/types';
+import { Token } from '@/types';
+import { NetworkKey, networkImages, networks } from '@/types/chain';
 import {
   Dialog,
   DialogContent,
@@ -155,6 +156,20 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleTokenSelection = (token: Token) => {
+    setTokenOut(token);
+
+    const network = networks.find((network) => network.key === checkedValue);
+    if (network) {
+      setTokenOut({
+        ...token,  // Retain other properties of token
+        chain: network.id,  // Update the chain to the corresponding network id
+      });
+    }
+
+    setModal(false);
+  };
   return (
     <div className='flex flex-row bg-neutral-800 rounded-2xl p-4'>
       <input
@@ -241,7 +256,7 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
                 </div>
               </div>}
             {tokens.searchTokens.map((token) => (
-              <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { setTokenOut(token); setModal(false) }} key={token.address}>
+              <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer'  onClick={() => { handleTokenSelection(token) }} key={token.address}>
                 {token.project.logoUrl ? (
                   <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
                 ) : (
@@ -269,7 +284,7 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
                   </div>
                 </div>}
               {tokens.userTokens.map((token: Token) => (
-                <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { setTokenOut(token); setModal(false) }} key={token.address}>
+                <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { handleTokenSelection(token) }} key={token.address}>
                   {token.project.logoUrl ? (
                     <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
                   ) : (

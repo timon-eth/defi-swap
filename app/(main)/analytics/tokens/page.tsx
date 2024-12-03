@@ -89,7 +89,8 @@ export default function Page() {
         </AlertDialog>
       )}
 
-      <div className="space-y-4 p-4 w-full xl:w-2/3 mt-24 md:p-8 pt-6 flex flex-col items-center">
+      <div className="space-y-4 w-full xl:w-2/3 mt-12 md:p-8 pt-6 flex flex-col items-center">
+        <p className="text-[#00f0ff] text-xl mb-2">Swap Tokens</p>
         <TokenTable
           columns={columns}
           data={tabledata}
