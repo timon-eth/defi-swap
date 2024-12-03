@@ -1,6 +1,6 @@
 'use client'
 
-import React, { use, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useAccount } from 'wagmi';
 import { useSwapStore } from '@/stores/useSwapStore';

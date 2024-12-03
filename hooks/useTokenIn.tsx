@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import { useContractRead } from 'wagmi';
-
 import GeneralArtifact from '@/lib/GeneralArtifact.json';
 
 const useTokenIn = (fromTokenAddress: string, amount: string, decimal: number) => {
@@ -10,9 +9,6 @@ const useTokenIn = (fromTokenAddress: string, amount: string, decimal: number) =
 
   const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimal);
   const router = process.env.NEXT_PUBLIC_UNISWAP_ROUTER_ADDRESS;
-
-  console.log(fromTokenAddress, amount, decimal);
-
 
   const { data: approve, isError } = useContractRead({
     address: fromTokenAddress as `0x${string}`,

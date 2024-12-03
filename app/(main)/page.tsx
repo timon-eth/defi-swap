@@ -6,8 +6,8 @@ import { Connect } from '@/components/swap/connect';
 import React, { useState, useEffect } from 'react';
 import { Token } from '@/types';
 import { useSwapStore } from '@/stores/useSwapStore';
-import { ethers, BigNumber, BigNumberish } from 'ethers';
-import { useAccount, useContractRead, useContractWrite, useWaitForTransactionReceipt } from 'wagmi';
+import { ethers, BigNumber } from 'ethers';
+import { useAccount, useContractRead, useContractWrite } from 'wagmi';
 import IUniswapV3PoolArtifact from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
 import ISwapRouterArtifact from '@uniswap/v3-periphery/artifacts/contracts/interfaces/ISwapRouter.sol/ISwapRouter.json';
 import IUniswapV3FactoryArtifact from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Factory.sol/IUniswapV3Factory.json';
@@ -147,13 +147,18 @@ export default function Swap() {
     abi: IUniswapV3PoolArtifact.abi,
     functionName: 'token0',
   });
-  const { data: token1 } = useContractRead({
-    address: poolAddress as `0x${string}`,
-    abi: IUniswapV3PoolArtifact.abi,
-    functionName: 'token1',
-  });
 
   const swap = async () => {
+    if(!tokenIn?.address || tokenOut?.address || amount || outAmount){
+      toast("Action Alert", {
+        description: `Please enter all required values.`,
+        action: {
+          label: "Warning",
+          onClick: () => console.log("Alert"),
+        },
+      });
+      return;
+    }
     const parsedAmountA = ethers.utils.parseUnits(amount.toString(), tokenIn?.decimals);
     const parsedAmountB = ethers.utils.parseUnits(amount.toString(), tokenOut?.decimals);
     const address = ethers.utils.getAddress(process.env.NEXT_PUBLIC_UNISWAP_ROUTER_ADDRESS!);
@@ -208,7 +213,6 @@ export default function Swap() {
   useEffect(() => {
     if (tokenIn?.address == '' || !tokenIn?.address || tokenOut?.address == '' || !tokenOut?.address)
       return;
-    console.log(poolAddress)
     if (poolAddress) {
       if (poolAddress == process.env.NEXT_PUBLIC_POOL_NULL && slot0AtoETH && slot0ETHtoB && feeAmountAtoETH && liquidityAmountAtoETH && feeAmountETHtoB && liquidityAmountETHtoB) {
         const tokenS = new UniswapToken(Number(process.env.NEXT_PUBLIC_STABLE_TOKEN_CHAIN), `${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, Number(process.env.NEXT_PUBLIC_STABLE_TOKEN_DECIMALS));

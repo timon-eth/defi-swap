@@ -10,11 +10,11 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import { Label } from '../ui/label';
 import { ChevronsUpDown } from 'lucide-react';
+
 export const Connect = () => {
   const [opensheet, setOpensheet] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
   
-
   // Close sheet when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,7 +93,7 @@ export const Connect = () => {
         }}
       </ConnectButton.Custom>
       <Sheet open={opensheet}>
-        <SheetContent onCloseAutoFocus={ () => { setOpensheet(false) }} ref={sheetRef}>
+        <SheetContent ref={sheetRef}>
           <SheetHeader>
             <SheetTitle><h1 className='text-[#00f0ff]'>Setting Wallet</h1></SheetTitle>
             <ConnectButton.Custom>

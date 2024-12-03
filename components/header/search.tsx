@@ -11,12 +11,13 @@ import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
+
 const TokenSearch = () => {
   const { tokens, setTokens } = useSwapStore();
   const pathname = usePathname();
   const params = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false); // Track focus state
+  const [isFocused, setIsFocused] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const searchcontent = useRef<HTMLDivElement | null>(null);
@@ -91,7 +92,7 @@ const TokenSearch = () => {
 
     return () => {
       if (debounceTimer) {
-        clearTimeout(debounceTimer);  // Clear the timer when the component unmounts
+        clearTimeout(debounceTimer); 
       }
     };
   }, [searchQuery]);
