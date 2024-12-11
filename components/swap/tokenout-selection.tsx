@@ -116,6 +116,10 @@ const TokenInSelection = ({ outAmount, tokenOut, setOutAmount, setTokenOut }: pr
       setTestmode(true);
       setCheckedValue('ethereum_sepolia');
     }
+    else {
+      setTestmode(false);
+      setCheckedValue('ethereum');
+    }
   }, [chainId])
 
   useEffect(() => {
