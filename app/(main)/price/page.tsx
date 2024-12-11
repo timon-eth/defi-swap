@@ -11,14 +11,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { PriceChart } from "@/components/chart/price";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Page() {
   const params = useSearchParams();
   const [data, setData] = useState<any>([]);
   const [price, setPrice] = useState('');
+  const [duration, setDuration] = useState('DAY');
   const [loading, setLoading] = useState<boolean>(false);
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false); // State to track screen width
   const [maximized, setMaximized] = useState<boolean>(false); // State to track if the screen was maximized
@@ -38,7 +49,7 @@ export default function Page() {
             operationName: 'TokenPrice',
             chain: chain,
             address: address,
-            duration: "DAY"
+            duration: duration
           }),
         });
 
@@ -73,7 +84,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchToken();
-  }, [params]);
+  }, [params, duration]);
 
   const handleMaximize = () => {
     setMaximized(true);
@@ -101,8 +112,32 @@ export default function Page() {
         </AlertDialog>
       )}
 
-      <div className="space-y-4 w-full mt-12 md:p-8 pt-6 flex flex-col items-center">
-        <p className="text-[#00f0ff] text-xl mb-2">Price Impact <span className="mx-8 text-white">${price}</span></p>
+      <div className="space-y-4 w-full mt-12 md:p-8 pt-6 flex flex-col">
+        <div className="flex flex-row">
+          <div className="text-[#00f0ff] text-xl mb-2 flex flex-row">
+            Price Impact
+            {
+              price == '' ?
+                <Skeleton className="mx-8 w-20 h-8 bg-[#fcb900] bg-opacity-40"></Skeleton>
+                :
+                <span className="mx-8 text-[#fcb900]">${parseFloat(price).toFixed(2)}</span>
+            }
+          </div>
+          <Select value={`${duration}`} onValueChange={(value: any) => { setDuration(value) }} >
+            <SelectTrigger className="w-[120px] ml-auto">
+              <SelectValue placeholder="Select a fruit" />
+            </SelectTrigger>
+            <SelectContent className="ml-auto">
+              <SelectGroup>
+                <SelectItem value="HOUR">Hour</SelectItem>
+                <SelectItem value="DAY">Day</SelectItem>
+                <SelectItem value="WEEK">Week</SelectItem>
+                <SelectItem value="MONTH">Month</SelectItem>
+                <SelectItem value="YEAE">Year</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
         <PriceChart data={data}></PriceChart>
       </div>
     </>

@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import GeneralArtifact from '@/lib/GeneralArtifact.json';
 
 export const useTokenData = (tokenAddress: string, userAddress: string) => {
+
   const { data: tokenBalance } = useContractRead({
     address: tokenAddress as `0x${string}`,
     abi: GeneralArtifact.abi,

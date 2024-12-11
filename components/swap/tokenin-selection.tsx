@@ -31,6 +31,7 @@ import { ChevronsUpDown } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRight } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBalance } from 'wagmi';
 
 type props = {
   amount: string,
@@ -42,11 +43,15 @@ type props = {
 const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => {
   const { tokens, setTokens } = useSwapStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
   const { formattedBalance } = useTokenData(tokenIn?.address || '', address || '');
+  const { data: balance } = useBalance({
+    address, chainId
+  });
 
   const [modal, setModal] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [testmode, setTestmode] = useState<boolean>(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
@@ -107,6 +112,17 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (chainId == 11155111) {
+      setTestmode(true);
+      setCheckedValue('ethereum_sepolia');
+    }
+    else {
+      setTestmode(false);
+      setCheckedValue('ethereum');
+    }
+  }, [chainId])
 
   useEffect(() => {
     if (modal) {
@@ -193,15 +209,28 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
           style={{ boxShadow: "2px 2px 5px 1px #00f0ff" }}
         >
           <span className="relative z-10 flex flex-row mx-auto justify-center">
-            {tokenIn?.project.logoUrl && <Image className='w-6 h-6 rounded-full mx-2' src={tokenIn?.project.logoUrl || ''} width={12} height={12} alt='main'></Image>}
+            {tokenIn?.project.logoUrl ?
+              <Image className='w-6 h-6 rounded-full mx-2' src={tokenIn?.project.logoUrl.replace("ipfs://", "https://ipfs.io/ipfs/") || ''} width={12} height={12} alt='main'></Image>
+              : tokenIn?.symbol && <div className='rounded-full w-6 h-6 bg-stone-300 mx-2'>{tokenIn?.symbol.slice(0, 1)}</div>}
             {tokenIn?.symbol || 'Select Token'}
             <ArrowRight className='w-3 mx-1' />
           </span>
         </button>
-        <div className='flex flex-row mt-2'>
-          {tokenIn?.symbol && <p className='text-[#00f0ff]'>Balance: {formattedBalance}</p>}
-          <p className='ml-auto text-[#00f0ff]'>{tokenIn?.symbol}</p>
-        </div>
+        {
+          tokenIn?.symbol == 'ETH' ?
+            <p className='text-stone-300 ml-auto my-1'>
+              {parseFloat(balance?.formatted || '0').toFixed(3)}
+              <span className='text-[#00f0ff] mx-2'>
+                ETH
+              </span>
+            </p>
+            : tokenIn?.symbol && <p className='text-stone-300 ml-auto my-1'>
+              {parseFloat(formattedBalance).toFixed(3)}
+              <span className='text-[#00f0ff] mx-2'>
+                {tokenIn?.symbol}
+              </span>
+            </p>
+        }
       </div>
 
       <Dialog open={modal}>
@@ -226,17 +255,31 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-56" ref={dropdownRef}>
-                  {networks.map((network) => (
-                    <DropdownMenuCheckboxItem
-                      key={network.key}
-                      checked={checkedValue === network.key}
-                      onCheckedChange={() => setCheckedValue(network.key as NetworkKey)}
-                      className="flex flex-row cursor-pointer"
-                    >
-                      <Image src={network.image} className="mx-2" width={20} height={20} alt={network.key} />
-                      {network.label}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  {testmode ?
+                    <>
+                      <DropdownMenuCheckboxItem
+                        key='ethereum_sepolia'
+                        checked={checkedValue === 'ethereum_sepolia'}
+                        onCheckedChange={() => setCheckedValue('ethereum_sepolia')}
+                        className="flex flex-row cursor-pointer"
+                      >
+                        <Image src={networkImages.ethereum_sepolia} className="mx-2" width={20} height={20} alt={'ethereum_sepolia'} />
+                        Sepolia
+                      </DropdownMenuCheckboxItem>
+                    </> :
+                    <>
+                      {networks.map((network) => (
+                        <DropdownMenuCheckboxItem
+                          key={network.key}
+                          checked={checkedValue === network.key}
+                          onCheckedChange={() => setCheckedValue(network.key as NetworkKey)}
+                          className="flex flex-row cursor-pointer"
+                        >
+                          <Image src={network.image} className="mx-2" width={20} height={20} alt={network.key} />
+                          {network.label}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </>}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -260,7 +303,7 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
             {tokens.searchTokens.map((token) => (
               <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { handleTokenSelection(token) }} key={token.address}>
                 {token.project.logoUrl ? (
-                  <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
+                  <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl.replace("ipfs://", "https://ipfs.io/ipfs/")} alt={token.name} />
                 ) : (
                   <div className='w-[50px] h-[50px] bg-white rounded-full mr-4 text-center items-center text-black py-3'>
                     {token.name.substring(0, 3).toUpperCase()}
@@ -288,7 +331,7 @@ const TokenInSelection = ({ amount, tokenIn, setAmount, setTokenIn }: props) => 
               {tokens?.userTokens.map((token: Token) => (
                 <div className='p-2 rounded-xl my-1 hover:bg-neutral-500 flex flex-row cursor-pointer' onClick={() => { handleTokenSelection(token) }} key={token.address}>
                   {token.project.logoUrl ? (
-                    <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl} alt={token.name} />
+                    <Image className='rounded-full mr-4' width={50} height={50} src={token.project.logoUrl.replace("ipfs://", "https://ipfs.io/ipfs/")} alt={token.name} />
                   ) : (
                     <div className='w-[50px] h-[50px] bg-white rounded-full mr-4 text-center items-center text-black py-3'>
                       {token.name.substring(0, 3).toUpperCase()}

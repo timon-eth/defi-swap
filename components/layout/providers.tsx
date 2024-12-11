@@ -34,7 +34,7 @@ const walletlist = [
 const config = getDefaultConfig({
   appName: "Trial",
   projectId,
-  chains: [mainnet, sepolia, bsc, avalanche, polygon, optimism, arbitrum, blast, zora, celo],
+  chains: [mainnet, sepolia, bsc, avalanche, polygon, optimism, arbitrum, blast, zora],
   ssr: true,
   wallets: walletlist,
 });

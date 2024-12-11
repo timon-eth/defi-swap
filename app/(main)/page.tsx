@@ -7,11 +7,18 @@ import React, { useState, useEffect } from 'react';
 import { Token } from '@/types';
 import { useSwapStore } from '@/stores/useSwapStore';
 import { ethers, BigNumber } from 'ethers';
-import { useAccount, useContractRead, useContractWrite } from 'wagmi';
+import { useAccount, useContractRead, useContractWrite, useWaitForTransactionReceipt, useEstimateGas } from 'wagmi';
+import {
+  fetchBalance,
+  waitForTransaction,
+  prepareTransactionRequest
+} from '@wagmi/core';
 import IUniswapV3PoolArtifact from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
 import ISwapRouterArtifact from '@uniswap/v3-periphery/artifacts/contracts/interfaces/ISwapRouter.sol/ISwapRouter.json';
 import IUniswapV3FactoryArtifact from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Factory.sol/IUniswapV3Factory.json';
 import GeneralArtifact from '@/lib/GeneralArtifact.json';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
+
 import { Pool } from '@uniswap/v3-sdk';
 import { Token as UniswapToken } from '@uniswap/sdk-core';
 import { toast } from "sonner";
@@ -46,7 +53,8 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
+import { LoadingSpinner } from '@/components/ui/loading';
+import { parseEther } from 'viem';
 
 type Slot0Data = [BigNumber, BigNumber, number, BigNumber];
 
@@ -56,20 +64,27 @@ export default function Swap() {
   const [tokenIn, setTokenIn] = useState<Token | null>(null);
   const [tokenOut, setTokenOut] = useState<Token | null>(null);
   const [amount, setAmount] = useState('');
+  const [isOpen, setIsOpen] = useState<boolean>(true);
   const [outAmount, setOutAmount] = useState('');
-  const [slippage, setSlippage] = useState('');
-  const [slipvalue, setSlipvalue] = useState<number>(0.3);
+  const [slippage, setSlippage] = useState('0.3');
+  const [slipvalue, setSlipvalue] = useState<number>(0.5);
   const [sliperror, setSliperror] = useState('');
   const [txn, setTxn] = useState<`0x${string}`>();
-  const [loading, setLoading] = useState(false);
-  const { data: hash, writeContractAsync, isError, isPending, isPaused, isSuccess } = useContractWrite()
+  const { data: hash, writeContractAsync, isError, isPending, isPaused, isSuccess, writeContract, reset } = useContractWrite();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    })
+
+  const factoryaddress = chainId == 11155111 ? process.env.NEXT_PUBLIC_UNISWAP_SEPOLIA_FACTORY_ADDRESS : process.env.NEXT_PUBLIC_UNISWAP_FACTORY_ADDRESS;
+  const routeraddress = chainId == 11155111 ? process.env.NEXT_PUBLIC_UNISWAP_SEPOLIA_ROUTER_ADDRESS : process.env.NEXT_PUBLIC_UNISWAP_ROUTER_ADDRESS;
 
   // Get pool for tokenA -> tokenB
   const { data: poolAddress, isLoading: poolloading, isLoadingError: poolloadingError } = useContractRead({
-    address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY_ADDRESS as `0x${string}`,
+    address: factoryaddress as `0x${string}`,
     abi: IUniswapV3FactoryArtifact.abi,
     functionName: 'getPool',
-    args: [tokenIn?.address, tokenOut?.address, slipvalue * Number(process.env.NEXT_PUBLIC_SLIPPAGE_CONSTANT)],
+    args: [tokenIn?.address, tokenOut?.address, 3000],
   });
 
   const { data: slot0Data } = useContractRead({
@@ -92,10 +107,10 @@ export default function Swap() {
 
   // Step 1: Get pool for tokenA -> ETH
   const { data: poolAtoETH } = useContractRead({
-    address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY_ADDRESS as `0x${string}`,
+    address: factoryaddress as `0x${string}`,
     abi: IUniswapV3FactoryArtifact.abi,
     functionName: 'getPool',
-    args: [tokenIn?.address, `${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, 3000],
+    args: [tokenIn?.address, `${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, slipvalue * Number(process.env.NEXT_PUBLIC_SLIPPAGE_CONSTANT)],
   });
 
   const { data: feeAmountAtoETH } = useContractRead({
@@ -118,10 +133,10 @@ export default function Swap() {
 
   // Step 2: Get pool for ETH -> tokenB
   const { data: poolETHtoB } = useContractRead({
-    address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY_ADDRESS as `0x${string}`,
+    address: factoryaddress as `0x${string}`,
     abi: IUniswapV3FactoryArtifact.abi,
     functionName: 'getPool',
-    args: [`${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, tokenOut?.address, 3000],
+    args: [`${process.env.NEXT_PUBLIC_STABLE_TOKEN_ADDRESS}`, tokenOut?.address, slipvalue * Number(process.env.NEXT_PUBLIC_SLIPPAGE_CONSTANT)],
   });
 
   const { data: slot0ETHtoB } = useContractRead({
@@ -149,7 +164,7 @@ export default function Swap() {
   });
 
   const swap = async () => {
-    if(!tokenIn?.address || tokenOut?.address || amount || outAmount){
+    if (!tokenIn?.address || !tokenOut?.address || !amount || !outAmount) {
       toast("Action Alert", {
         description: `Please enter all required values.`,
         action: {
@@ -161,36 +176,39 @@ export default function Swap() {
     }
     const parsedAmountA = ethers.utils.parseUnits(amount.toString(), tokenIn?.decimals);
     const parsedAmountB = ethers.utils.parseUnits(amount.toString(), tokenOut?.decimals);
-    const address = ethers.utils.getAddress(process.env.NEXT_PUBLIC_UNISWAP_ROUTER_ADDRESS!);
+    const r_address = ethers.utils.getAddress(routeraddress!);
 
     try {
-      writeContractAsync({
+      const approveTx = await writeContractAsync({
         address: tokenIn?.address as `0x${string}`,
         abi: GeneralArtifact.abi,
         functionName: 'approve',
-        args: [address, parsedAmountA],
-      })
-
-      const params = {
-        tokenIn: tokenIn?.address,
-        tokenOut: tokenOut?.address,
-        fee: feeAmount,
-        recipient: address,
-        deadline: Math.floor(Date.now() / 1000) + 60 * 10,
-        amountIn: parsedAmountB,
-        amountOutMinimum: 0,
-        sqrtPriceLimitX96: 0
-      };
-
-      let txn = await writeContractAsync({
-        address: address as `0x${string}`,
-        abi: ISwapRouterArtifact.abi,
-        functionName: 'exactInputSingle',
-        args: [params],
-        gas: BigInt(ethers.utils.hexlify(700000))
+        args: [r_address, parsedAmountA],
       });
-      setTxn(txn);
 
+      if (approveTx) {
+        console.log(tokenIn?.address, tokenOut?.address, feeAmount, address, Math.floor(Date.now() / 1000) + 60 * 10, parsedAmountA)
+        const params = {
+          tokenIn: tokenIn?.address,
+          tokenOut: tokenOut?.address,
+          fee: feeAmount,
+          recipient: address,
+          deadline: Math.floor(Date.now() / 1000) + 60 * 10,
+          amountIn: parsedAmountA,
+          amountOutMinimum: 0,
+          sqrtPriceLimitX96: 0
+        };
+
+        const swaptxn = await writeContractAsync({
+          address: r_address as `0x${string}`,
+          abi: ISwapRouterArtifact.abi,
+          functionName: 'exactInputSingle',
+          args: [params],
+          gas: BigInt(ethers.utils.hexlify(1000000)),
+          value: parseEther('0.005')
+        });
+        setTxn(swaptxn);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -297,7 +315,6 @@ export default function Swap() {
               const outputAmount = (Number(amount) * parseFloat(pool.token1Price.toFixed(6))).toPrecision(6);
               setOutAmount(`${outputAmount}`);
             }
-            console.log(poolAddress, pool.token1Price.toFixed(2));
           } catch (e) {
             toast("Pool Loading Failed", {
               description: `${e}`,
@@ -307,9 +324,6 @@ export default function Swap() {
               },
             })
           }
-          setLoading(false);
-        } else {
-          setLoading(true);
         }
       }
     }
@@ -326,6 +340,14 @@ export default function Swap() {
     }
   }, [poolAddress, slot0Data, slot0AtoETH, slot0ETHtoB, feeAmount, liquidityAmount, tokenIn, tokenOut, amount, setSwapTokens]);
 
+  useEffect(() => {
+    if (isSuccess || isError || isConfirmed || isPaused) {
+      setIsOpen(true);  // Open the dialog when any of these states change
+    }
+    else {
+      setIsOpen(false);
+    }
+  }, [isSuccess, isError, isConfirmed, isPaused]);
 
   return (
     <Card className='items-center flex flex-col'>
@@ -333,7 +355,7 @@ export default function Swap() {
         <h1 className='text-[#00f0ff]'>Swap</h1>
       </CardHeader>
       <CardContent className="space-y-2">
-        <TokenInSelection amount={amount} tokenIn={tokenIn} setAmount={setAmount} setTokenIn={setTokenIn}/>
+        <TokenInSelection amount={amount} tokenIn={tokenIn} setAmount={setAmount} setTokenIn={setTokenIn} />
         <Separator className="w-4/5 mx-auto" />
         <TokenOutSelection outAmount={outAmount} tokenOut={tokenOut} setOutAmount={setOutAmount} setTokenOut={setTokenOut} />
       </CardContent>
@@ -344,13 +366,19 @@ export default function Swap() {
             <AccordionContent>
               <div className='flex flex-row py-2 px-1'>
                 <Label className='w-1/2 my-auto text-[#00f0ff]'>
+                  Fee
+                </Label>
+                <p className='text-[#00f0ff] ml-auto'>{slipvalue}%</p>
+              </div>
+              <div className='flex flex-row py-2 px-1'>
+                <Label className='w-1/2 my-auto text-[#00f0ff]'>
                   Max slippage
                   <span className='text-red-700 font-[12px]'>
                     {sliperror != "" && <p>{sliperror}</p>}
                   </span>
                 </Label>
                 <Input
-                  className='w-1/2'
+                  className='w-1/2 text-right'
                   defaultValue={0.3}
                   value={slippage}
                   type="number"
@@ -359,32 +387,39 @@ export default function Swap() {
                 >
                 </Input>
               </div>
+              <div className='flex flex-row py-2 px-1'>
+                <Label className='w-1/2 my-auto text-[#00f0ff]'>
+                  Order routing
+                </Label>
+                <p className='text-[#00f0ff] ml-auto'>UniswapX</p>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        {address ? <Button className='w-full bg-neutral-500 rounded-xl' onClick={() => { swap() }}>Swap</Button> : <Connect></Connect>}
+        {address ? <Button className='w-full bg-neutral-500 rounded-xl' disabled={isConfirming} onClick={() => { swap() }}>Swap{isConfirming && <LoadingSpinner></LoadingSpinner>}</Button> : <Connect></Connect>}
       </CardFooter>
-      {isPending && <AlertDialog open={isSuccess || isError || isPaused}>
+      <AlertDialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
+              {isConfirmed && "The token was exchanged successfully."}
               {isSuccess && "Transaction Confirmed"}
               {isError && "Transaction Failed"}
               {isPaused && "Transaction Paused"}
             </AlertDialogTitle>
             <AlertDialogDescription>
+              {isSuccess && "Click here to see the current transaction status."}
               {isSuccess && "The swap was completed successfully."}
               {isError && "An error occurred while executing the transaction."}
               {isPaused && "The transaction was paused for a while."}
-              <a className='p-2' href='#'>{txn?.slice(0, 8)}...</a>
+              <a className='p-2' href={`https://sepolia.etherscan.io/tx/${txn}`}>{txn?.slice(0, 8)}...</a>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Continue</AlertDialogAction>
+            <AlertDialogCancel onClick={() => {setIsOpen(false);}}>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>}
+      </AlertDialog>
     </Card>
   );
 }

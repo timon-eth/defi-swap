@@ -119,7 +119,6 @@ const TokenSearch = () => {
 
   useEffect(() => {
     setIsFocused(false);
-    console.log(pathname);
   }, [pathname, params])
   return (
     <div className='fixed z-10 top-12 w-[350px] sm:w-[400px]'>

@@ -9,12 +9,27 @@ import {
 } from "@/components/ui/sheet"
 import { useState, useEffect, useRef } from 'react';
 import { Label } from '../ui/label';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown, Settings } from 'lucide-react';
+import { useAccount } from 'wagmi';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+
 
 export const Connect = () => {
   const [opensheet, setOpensheet] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
-  
+
+  const { chainId } = useAccount();
   // Close sheet when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -166,7 +181,6 @@ export const Connect = () => {
                               <ChevronsUpDown className='text-sm w-4 ml-auto mr-2'></ChevronsUpDown>
                             </div>
                           </div>
-
                         </div>
                       );
                     })()}
@@ -177,6 +191,20 @@ export const Connect = () => {
           </SheetHeader>
         </SheetContent>
       </Sheet>
+      <AlertDialog>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Testnet mode</AlertDialogTitle>
+            <AlertDialogDescription>
+              This turns on testnets for developers to try out features and transactions without using real assets. Tokens on testnets do not hold any real value.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

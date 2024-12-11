@@ -8,7 +8,7 @@ const useTokenIn = (fromTokenAddress: string, amount: string, decimal: number) =
   }
 
   const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimal);
-  const router = process.env.NEXT_PUBLIC_UNISWAP_ROUTER_ADDRESS;
+  const router = process.env.NEXT_PUBLIC_UNISWAP_SEPOLIA_ROUTER_ADDRESS;
 
   const { data: approve, isError } = useContractRead({
     address: fromTokenAddress as `0x${string}`,
