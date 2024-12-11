@@ -205,7 +205,7 @@ export default function Swap() {
           functionName: 'exactInputSingle',
           args: [params],
           gas: BigInt(ethers.utils.hexlify(1000000)),
-          value: parseEther('0.005')
+          value: parseEther('0.01')
         });
         setTxn(swaptxn);
       }
